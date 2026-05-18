@@ -281,7 +281,7 @@ const server = http.createServer(async (req, res) => {
 
   // ── ARCHIVOS ESTÁTICOS ───────────────────────────────────────
   let filePath = p === '/' ? '/index.html' : p;
-  filePath = path.join(__dirname, 'public', filePath);
+  filePath = path.join(__dirname, 'Public', filePath);
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); res.end('Not found'); return; }
     const ext = path.extname(filePath);
