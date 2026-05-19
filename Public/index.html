@@ -569,17 +569,18 @@ function startApp() {
   }
 
   buildMissionTabs();
-  // Seleccionar automáticamente la misión única de sesión
+  // Seleccionar la misión única automáticamente
   var missionId = S.op.sessionMissionId;
   if (!missionId) {
     var keys = Object.keys(S.op.missions || {});
-    missionId = keys.length > 0 ? keys[0] : 'base';
+    missionId = keys.length > 0 ? keys[0] : null;
   }
-  selectMission(missionId);
+  if (missionId) selectMission(missionId);
   updateLayerBar();
   connectSSE();
   setTool('pan');
-  resize();
+  // Delay para que el DOM esté pintado antes de medir el canvas
+  setTimeout(function(){ resize(); }, 50);
 }
 
 function goHome() {
@@ -705,15 +706,18 @@ function flashBtn(btn, msg) {
 //  SSE — TIEMPO REAL
 // ═══════════════════════════════════════════════
 var evtSrc = null;
+var pingTimer = null;
 
 function connectSSE() {
   if (evtSrc) evtSrc.close();
+  if (pingTimer) clearInterval(pingTimer);
+
   var u = '/api/events?opId='+S.op.id+'&code='+S.code;
   evtSrc = new EventSource(u);
 
   evtSrc.onopen = function(){
     document.getElementById('sdot').className='sdot ok';
-    document.getElementById('slbl').textContent='Conectado';
+    document.getElementById('slbl').textContent='Conectado (1 online)';
   };
   evtSrc.onmessage = function(e){
     var msg = JSON.parse(e.data);
@@ -722,18 +726,29 @@ function connectSSE() {
   evtSrc.onerror = function(){
     document.getElementById('sdot').className='sdot err';
     document.getElementById('slbl').textContent='Reconectando...';
+    evtSrc.close();
     setTimeout(connectSSE, 4000);
   };
 
   // Auto-save jugadores cada 3s
   if (S.role !== 'editor') {
+    if (autoSaveTimer) clearInterval(autoSaveTimer);
     autoSaveTimer = setInterval(autoSavePlayers, 3000);
   }
+
+  // Ping cada 25s para mantener SSE viva en Render (corta a los 30s)
+  pingTimer = setInterval(function(){
+    fetch('/api/ping').catch(function(){});
+  }, 25000);
 }
 
 function onSSE(event, data) {
   if (event==='init') {
     S.op = data.op;
+    // Re-seleccionar la misión activa por si los datos cambiaron
+    var mId = S.op.sessionMissionId;
+    if (!mId) { var ks=Object.keys(S.op.missions||{}); mId=ks.length>0?ks[0]:null; }
+    if (mId && mId !== S.mission) selectMission(mId);
     buildMissionTabs();
     render(); return;
   }
