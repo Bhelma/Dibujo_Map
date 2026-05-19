@@ -1,0 +1,26 @@
+{
+  "operations": {
+    "12F08CD8": {
+      "id": "12F08CD8",
+      "name": "EVERON RISING: HOLD THE LINE",
+      "mapId": 0,
+      "createdAt": 1779211473391,
+      "codes": {
+        "editor": "DC4721",
+        "player": "19A635"
+      },
+      "editorMarkers": [],
+      "editorStrokes": [],
+      "sessionMissionId": "CE807C",
+      "missions": {
+        "CE807C": {
+          "id": "CE807C",
+          "name": "Sesión",
+          "createdAt": 1779211473391,
+          "playerMarkers": [],
+          "playerStrokes": []
+        }
+      }
+    }
+  }
+}
