@@ -93,6 +93,14 @@
           "wy": 0.017303466796875,
           "sym": "ART",
           "col": "#4488ff"
+        },
+        {
+          "wx": 0.517364501953125,
+          "wy": 0.017547607421875,
+          "sym": "TEXT",
+          "col": "#4488ff",
+          "label": "POSIBLE UBICACION MORTEROS",
+          "op": 0.85
         }
       ],
       "editorStrokes": [],
