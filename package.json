@@ -1,0 +1,8 @@
+{
+  "name": "everon-ops",
+  "version": "3.0.0",
+  "description": "EVERON OPS Briefing Tool - Bhelma Core",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18.0.0" }
+}
