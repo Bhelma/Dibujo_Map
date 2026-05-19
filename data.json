@@ -9,7 +9,22 @@
         "editor": "DC4721",
         "player": "19A635"
       },
-      "editorMarkers": [],
+      "editorMarkers": [
+        {
+          "wx": 0.42401123046875,
+          "wy": 0.04766845703125,
+          "sym": "TEXT",
+          "col": "#00d4aa",
+          "label": "INICIO",
+          "op": 0.85
+        },
+        {
+          "wx": 0.42218017578125,
+          "wy": 0.04791259765625,
+          "sym": "WP",
+          "col": "#00d4aa"
+        }
+      ],
       "editorStrokes": [],
       "sessionMissionId": "CE807C",
       "missions": {
