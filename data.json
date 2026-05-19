@@ -136,6 +136,28 @@
           "playerStrokes": []
         }
       }
+    },
+    "CD40815C": {
+      "id": "CD40815C",
+      "name": "CHERNARUS",
+      "mapId": 1,
+      "createdAt": 1779223093199,
+      "codes": {
+        "editor": "2EE8B9",
+        "player": "371750"
+      },
+      "editorMarkers": [],
+      "editorStrokes": [],
+      "sessionMissionId": "DCC514",
+      "missions": {
+        "DCC514": {
+          "id": "DCC514",
+          "name": "Sesión",
+          "createdAt": 1779223093199,
+          "playerMarkers": [],
+          "playerStrokes": []
+        }
+      }
     }
   }
 }
