@@ -114,6 +114,28 @@
           "playerStrokes": []
         }
       }
+    },
+    "86FFD64A": {
+      "id": "86FFD64A",
+      "name": "test",
+      "mapId": 0,
+      "createdAt": 1779222909067,
+      "codes": {
+        "editor": "67A015",
+        "player": "443E58"
+      },
+      "editorMarkers": [],
+      "editorStrokes": [],
+      "sessionMissionId": "6B0C0B",
+      "missions": {
+        "6B0C0B": {
+          "id": "6B0C0B",
+          "name": "Sesión",
+          "createdAt": 1779222909067,
+          "playerMarkers": [],
+          "playerStrokes": []
+        }
+      }
     }
   }
 }
