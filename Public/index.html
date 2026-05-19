@@ -355,12 +355,7 @@ input[type=range] { width: 55px; accent-color: var(--green); height: 3px; cursor
   </div>
 </div>
 
-<div id="mission-bar" style="display:none">
-  <span style="font-size:9px;color:var(--text3);letter-spacing:1px;flex-shrink:0">MISIÓN:</span>
-  <button class="mstab base on" id="mstab-base" onclick="selectMission('base')">BASE (Editor)</button>
-  <div id="mission-tabs-container" style="display:flex;gap:6px"></div>
-  <button id="btn-add-mission" style="display:none" onclick="showAddMission()">+ Misión</button>
-</div>
+<!-- mission-bar eliminado: misión única automática -->
 
 <div id="layer-bar" style="display:none">
   <div class="ldot editor-ld vis" id="ld-editor" onclick="toggleLayerVis('editor')">
@@ -388,18 +383,7 @@ input[type=range] { width: 55px; accent-color: var(--green); height: 3px; cursor
   <span style="font-size:8px;letter-spacing:2px;color:var(--text3)">© BHELMA CORE</span>
 </div>
 
-<!-- Modal nueva misión -->
-<div class="modal-bg" id="modal-mission" style="display:none">
-  <div class="modal">
-    <h3>Nueva Misión</h3>
-    <input id="mission-name-inp" type="text" placeholder="Nombre de la misión" maxlength="40"
-      onkeydown="if(event.key==='Enter')doCreateMission()">
-    <div class="mbts">
-      <button onclick="document.getElementById('modal-mission').style.display='none'">Cancelar</button>
-      <button class="primary" onclick="doCreateMission()">Crear</button>
-    </div>
-  </div>
-</div>
+<!-- modal-mission eliminado -->
 
 <!-- Modal códigos -->
 <div class="modal-bg" id="modal-codes" style="display:none">
@@ -431,7 +415,7 @@ var THUMB2 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAoHBwgHBgo
 // ═══════════════════════════════════════════════
 var S = {
   role: null, code: null, op: null,
-  mission: 'base'   // 'base' o missionId
+  mission: ''  // missionId de la sesión única
 };
 
 var layerVis = { editor: true, player: true };
@@ -560,7 +544,7 @@ function escHtml(s) {
 // ═══════════════════════════════════════════════
 function startApp() {
   document.getElementById('screen-home').style.display = 'none';
-  ['topbar','mission-bar','layer-bar','mw','bot'].forEach(function(id){
+  ['topbar','layer-bar','mw','bot'].forEach(function(id){
     document.getElementById(id).style.display = '';
   });
 
@@ -578,7 +562,6 @@ function startApp() {
     pill.textContent='EDITOR'; pill.className='role-pill role-editor';
     document.getElementById('save-btn').style.display='';
     document.getElementById('codes-btn').style.display='';
-    document.getElementById('btn-add-mission').style.display='';
     document.getElementById('mc-editor').textContent = S.op.codes.editor;
     document.getElementById('mc-player').textContent = S.op.codes.player;
   } else {
@@ -586,7 +569,13 @@ function startApp() {
   }
 
   buildMissionTabs();
-  selectMission('base');
+  // Seleccionar automáticamente la misión única de sesión
+  var missionId = S.op.sessionMissionId;
+  if (!missionId) {
+    var keys = Object.keys(S.op.missions || {});
+    missionId = keys.length > 0 ? keys[0] : 'base';
+  }
+  selectMission(missionId);
   updateLayerBar();
   connectSSE();
   setTool('pan');
@@ -668,7 +657,6 @@ function getLayer(which) {
   var op = S.op;
   if (which==='editor') return { markers: op.editorMarkers||[], strokes: op.editorStrokes||[] };
   // player
-  if (S.mission==='base') return { markers:[], strokes:[] }; // no hay capa jugador en base
   var m = op.missions[S.mission];
   if (!m) return { markers:[], strokes:[] };
   return { markers: m.playerMarkers||[], strokes: m.playerStrokes||[] };
@@ -677,7 +665,6 @@ function getLayer(which) {
 function setLayer(which, markers, strokes) {
   var op = S.op;
   if (which==='editor') { op.editorMarkers=markers; op.editorStrokes=strokes; return; }
-  if (S.mission==='base') return;
   var m = op.missions[S.mission];
   if (!m) return;
   m.playerMarkers=markers; m.playerStrokes=strokes;
@@ -701,7 +688,6 @@ async function saveEditorLayer() {
 
 async function autoSavePlayers() {
   if (!playerDirty) return;
-  if (S.mission==='base') return;
   var d = getLayer('player');
   await fetch('/api/ops/'+S.op.id+'/missions/'+S.mission+'/players', {
     method:'PUT', headers:{'Content-Type':'application/json'},
@@ -835,7 +821,7 @@ function render(){
   }
 
   // Capa jugadores (solo en misiones, no en base)
-  if(layerVis.player && S.mission!=='base'){
+  if(layerVis.player && S.mission){
     var pl=getLayer('player');
     pl.strokes.forEach(function(s){ drawStroke(s,'#00d4aa'); });
     pl.markers.forEach(function(mk){ var p=w2s(mk.wx,mk.wy); drawMarker(p.x,p.y,mk.sym,mk.col||'#00d4aa',mk); });
@@ -888,7 +874,6 @@ canvas.addEventListener('mousedown',function(e){
   if(e.button!==0) return;
   var layer=myEditLayer();
   // Jugadores solo pueden editar en misiones, no en base
-  if(layer==='player' && S.mission==='base') return;
 
   if(tool==='marker'){
     saveH(); var d=getLayer(layer);
@@ -912,7 +897,6 @@ canvas.addEventListener('mousemove',function(e){
   if(isPan){ panX=panSt.px+(e.clientX-panSt.x); panY=panSt.py+(e.clientY-panSt.y); render(); return; }
   if(!isDraw) return;
   var layer=myEditLayer();
-  if(layer==='player' && S.mission==='base') return;
   var d=getLayer(layer);
   if(tool==='pen'){
     penPts.push(wp);
@@ -928,7 +912,6 @@ canvas.addEventListener('mouseup',function(e){
   if(isPan){ isPan=false; canvas.style.cursor=tool==='pan'?'grab':'crosshair'; return; }
   if(!isDraw) return; isDraw=false;
   var wp=s2w(e.offsetX,e.offsetY), layer=myEditLayer();
-  if(layer==='player' && S.mission==='base'){ penPts=[]; return; }
   var d=getLayer(layer);
   if(tool==='pen'&&penPts.length>1){
     d.strokes.push({type:'pen',points:penPts.slice(),col:color,sz:sz,op:op});
@@ -945,7 +928,7 @@ canvas.addEventListener('mouseup',function(e){
 
 canvas.addEventListener('mouseleave',function(){
   var layer=myEditLayer(); var d=getLayer(layer);
-  if(isDraw&&tool==='pen'&&penPts.length>1&&!(layer==='player'&&S.mission==='base')){
+  if(isDraw&&tool==='pen'&&penPts.length>1){
     d.strokes.push({type:'pen',points:penPts.slice(),col:color,sz:sz,op:op});
     if(layer==='player') playerDirty=true;
   }
@@ -956,7 +939,6 @@ canvas.addEventListener('contextmenu',function(e){
   e.preventDefault();
   var p={x:e.offsetX,y:e.offsetY}, best=-1, bd=30;
   var layer=myEditLayer(); var d=getLayer(layer);
-  if(layer==='player'&&S.mission==='base') return;
   d.markers.forEach(function(mk,i){
     var sp=w2s(mk.wx,mk.wy), dist=Math.hypot(p.x-sp.x,p.y-sp.y);
     if(dist<bd){ bd=dist; best=i; }
@@ -978,12 +960,10 @@ function confirmText(e){
     var v=document.getElementById('tf').value.trim();
     if(v){
       var ov=document.getElementById('tov'), layer=ov._layer||myEditLayer();
-      if(!(layer==='player'&&S.mission==='base')){
-        saveH(); var d=getLayer(layer);
-        d.markers.push({wx:ov._wp.wx,wy:ov._wp.wy,sym:'TEXT',col:color,label:v.toUpperCase(),op:op});
-        if(layer==='player') playerDirty=true;
-        render();
-      }
+      saveH(); var d=getLayer(layer);
+      d.markers.push({wx:ov._wp.wx,wy:ov._wp.wy,sym:'TEXT',col:color,label:v.toUpperCase(),op:op});
+      if(layer==='player') playerDirty=true;
+      render();
     }
     document.getElementById('tf').value=''; document.getElementById('tov').style.display='none';
   } else if(e.key==='Escape'){
