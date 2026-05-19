@@ -199,6 +199,9 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
+  // PING — mantener conexiones vivas
+  if (p === '/api/ping') { send(res, { ok: true }); return; }
+
   // TILE PROXY
   const tm = p.match(/^\/tile\/(\d+)\/(\d+)\/(\d+)$/);
   if (tm) {
@@ -220,7 +223,14 @@ const server = http.createServer(async (req, res) => {
     res.write(`data: ${JSON.stringify({ event:'init', data:{ op, role } })}\n\n`);
     addClient(q.opId, res, role);
     broadcast(q.opId, 'online', { count: (clients[q.opId]||[]).length });
-    req.on('close', () => { removeClient(q.opId, res); broadcast(q.opId, 'online', { count: (clients[q.opId]||[]).length }); });
+    const keepAlive = setInterval(() => {
+      try { res.write(': ping\n\n'); } catch(e) { clearInterval(keepAlive); }
+    }, 20000);
+    req.on('close', () => {
+      clearInterval(keepAlive);
+      removeClient(q.opId, res);
+      broadcast(q.opId, 'online', { count: (clients[q.opId]||[]).length });
+    });
     return;
   }
 
