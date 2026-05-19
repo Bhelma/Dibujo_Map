@@ -125,10 +125,15 @@ function getRole(op, code) {
 
 function makeOp(name, mapId) {
   const id = genCode(8);
+  const session = makeMission('Sesión');
+  const missions = {};
+  missions[session.id] = session;
   return {
     id, name, mapId: mapId || 0, createdAt: Date.now(),
     codes: { editor: genCode(6), player: genCode(6) },
-    editorMarkers: [], editorStrokes: [], missions: {}
+    editorMarkers: [], editorStrokes: [],
+    sessionMissionId: session.id,
+    missions
   };
 }
 
