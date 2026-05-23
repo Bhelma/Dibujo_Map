@@ -110,7 +110,14 @@
           "id": "2452CB",
           "name": "Sesión",
           "createdAt": 1779212697277,
-          "playerMarkers": [],
+          "playerMarkers": [
+            {
+              "wx": 0.3795166015625,
+              "wy": 0.103515625,
+              "sym": "ART",
+              "col": "#00d4aa"
+            }
+          ],
           "playerStrokes": []
         }
       }
